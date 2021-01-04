@@ -10,7 +10,16 @@ public class MarvelGraph{
 		Graph Marvel = new Graph();
 		CSVReader.nodesRead(args[0], Marvel);    //read the file containing vertices and store them
 		CSVReader.edgesRead(args[1], Marvel);    //read the file containing edges and create an adjacency list
-		System.out.println(Marvel.size + " " + Marvel.edgesize);
+		switch(args[2]){
+			case "average":
+				System.out.println(String.format("%.2f", Marvel.average()));
+				//print the average no of characters associated with a character
+				break;
+			case "rank":
+				break;
+			case "independent_storylines_dfs":
+				break;
+		}
 	}
 }
 
@@ -100,7 +109,20 @@ class Graph{
 	HashMap<String, Integer> indices;    //this hashmap stores the index for each label of a vertex
 	ArrayList<Vertex> vertices;    //this list stores the vertices at correct index
 	ArrayList<LinkedList<Edge>> adjList;    //the list shall store the linked lists containing the adjacenct list of each vertex
-	void Graph(){}
+	void Graph(){}    //constructor for Graph
+	
+	public float average(){
+		//returns the average number of characters associated
+		//Time Complexity:: O(1), constant number of operations
+		//Space Complexity O(1)
+		
+		return (size == 0) ? null : (float) Math.round((float)(2 * edgesize)/size * 100)/100;
+		//return null for 0 size of the list
+		//otherwise return average no of characters associated with each
+		//where average no of characters = 2* total no of edges / no of vertices
+		//since 2*total no of edges = sum of degrees of all vertices
+		//which is in this case the average no of characters associated
+	}
 }
 
 class Vertex{
@@ -122,10 +144,10 @@ class Edge{
 	//Since the graph is undirected, the ordering shall not matter
 	//nonetheless the source shall be the current vertex in whose adjacency list the edge is added
 	int weight;    //stores the weight of each edge
-	Edge(Vertex source, Vertex target, int weight){
+	Edge(Vertex source, Vertex target, int w){
 		end = new Vertex[2];
 		end[0] = source;
 		end[1] = target;
-		weight = weight;    //constructor for edge
+		weight = w;    //constructor for edge
 	}
 }
