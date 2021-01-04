@@ -22,6 +22,14 @@ public class MarvelGraph{
 				for(int i = 1; i < Marvel.size; i++){System.out.print("," + Marvel.vertices.get(ranks[i]).label);}
 				break;
 			case "independent_storylines_dfs":
+				Marvel.independent_storylines_dfs();
+				for(int i = 0; i < Marvel.connected_components.size(); i++){
+					int[] comp = Marvel.connected_components.get(Marvel.sort_comp.get(Marvel.connected[i]));
+					for(int j = 0; j < comp.length - 1; j++){
+						System.out.print(Marvel.vertices.get(comp[j]).label + ",");
+					}
+					System.out.println(Marvel.vertices.get(comp[comp.length - 1]).label);
+				}
 				break;
 		}
 	}
@@ -119,12 +127,15 @@ class Graph{
 	ArrayList<Vertex> vertices;    //this list stores the vertices at correct index
 	ArrayList<LinkedList<Edge>> adjList;    //the list shall store the linked lists containing the adjacenct list of each vertex
 	int[] co_occ;    //this list shall contain total no of coocc of each character stored by order
+	ArrayList<int[]> connected_components;    //ArrayList containing connected components of the graph
+	int[] connected;    //array containing first elements of connected components in reverse sorted order
+	HashMap<Integer, Integer> sort_comp;    //hashmap to help in sorting components
 	void Graph(){}    //constructor for Graph
 	
 	public float average(){
 		//returns the average number of characters associated
 		//Time Complexity:: O(1), constant number of operations
-		//Space Complexity O(1)
+		//Space Complexity:: O(1)
 		
 		return (size == 0) ? null : (float) Math.round((float)(2 * edgesize)/size * 100)/100;
 		//return null for 0 size of the list
@@ -142,8 +153,55 @@ class Graph{
 		
 		int[] arr = new int[this.size];
 		for(int i = 0; i < size; i++){arr[i] = i;}    //create an array of the indices from 0 to size - 1
-		Heap.sort(arr, this, this.size);    //Heap sort the array by the required ordering
+		Heap.sort(arr, this, this.size, true, co_occ);    //Heap sort the array by the required ordering
 		return arr;    //return the array with reverse sorted indices
+	}
+	
+	public void dfs(int v, ArrayList<Integer> component, boolean[] visited){
+		//performs a depth-first search on the node v of graph
+		//adds in the components arraylist
+		
+		component.add(v);    //add the vertex in the component list
+		visited[v] = true;
+		for(int i = 0; i < adjList.get(v).size(); i++){
+			//loop over the adjacent vertices of v1
+			if(visited[adjList.get(v).get(i).end[1].index] != true){
+				dfs(adjList.get(v).get(i).end[1].index, component, visited);    //recursively call dfs over all unvisited neighbours of v
+			}
+		}
+	}
+	
+	public void independent_storylines_dfs(){
+		//performs dfs on the graph starting from 1st vertex
+		//separates the connected components of the graph representing independent storylines
+		//Time Complexity:: O(n + m)    where n and m are no of vertices and edges
+		//Space Complexity:: O(n)    where n is the number of vertices
+		
+		boolean[] visited = new boolean[size];    //array containing the information whether a vertex has been visited or not
+		connected_components = new ArrayList<int[]>();
+		sort_comp = new HashMap<Integer, Integer>();
+		connected = new int[size];
+		for(int i = 0; i < size; i++){
+			//iterate over all vertices of the graph
+			if(visited[i] != true){
+				//if the vertex is not visited, start dfs
+				ArrayList<Integer> comp = new ArrayList<Integer>();
+				dfs(i, comp, visited);    //perform dfs on i and add the connected vertices to comp
+				int[] comp_arr = new int[comp.size()];
+				for(int k = 0; k < comp.size(); k++){comp_arr[k] = comp.get(k);}
+				Heap.sort(comp_arr, this, comp.size(), false, co_occ);
+				connected_components.add(comp_arr);
+				//once dfs is over, add the array to the list of components sorted lexicographically (hence occurrence = false)
+			}
+		}
+		int[] size_comp = new int[size];    //array containing sizes of connected components
+		for(int i = 0; i < connected_components.size(); i++){
+			//add index-firstelement pair in Hashmap sort_comp
+			sort_comp.put(connected_components.get(i)[0], i);
+			connected[i] = connected_components.get(i)[0];    //create an array to store the indices of the components
+			size_comp[connected_components.get(i)[0]] = connected_components.get(i).length;    //update the size array
+		}
+		Heap.sort(connected, this, connected_components.size(), true, size_comp);
 	}
 	
 	public void gen_co(){
@@ -163,17 +221,17 @@ class Graph{
 		}
 	}
 	
-	boolean isLess(Vertex v1, Vertex v2){
+	boolean isLess(Vertex v1, Vertex v2, boolean occurrence, int[] size){
 		//returns true/false whether a vertex v1 in given graph is lower or higher ranked
 		//Time Complexity:: O(1)
 		//Space Complexity:: O(1)
 		
-		if(co_occ[v1.index] != co_occ[v2.index]){
-			//if characters have different no of co-occurences, rank by no of co-occurences
-			return co_occ[v1.index] < co_occ[v2.index];
+		if(occurrence && (size[v1.index] != size[v2.index])){
+			//if characters have different sizes, rank by size
+			return size[v1.index] < size[v2.index];
 		}
 		else{
-			//if they have same no of co-occurences, rank lexicographically
+			//if they have same size, rank lexicographically
 			return v1.isLess(v2);
 		}
 	}
@@ -226,7 +284,7 @@ class Heap{
 		array[j] = temp;
 	}
 	
-	static void Heapify(int[] arr, int n, int i, Graph G){
+	static void Heapify(int[] arr, int n, int i, Graph G, boolean occurrence, int[] size){
 		//This function converts an array into a heap
 		//Time Complexity:: O(log N)    where N = size of the list to be heapifies provided the subtrees are heaps
 		//Space Complexity:: O(1)
@@ -235,10 +293,10 @@ class Heap{
 		int min = i;    //define a temporary integer to contain the minimum one
 		int left = 2*i + 1;    //index of left child
 		int right = 2*i + 2;    //index of right child
-		if(left < n && !G.isLess(G.vertices.get(arr[min]), G.vertices.get(arr[left]))){
+		if(left < n && !G.isLess(G.vertices.get(arr[min]), G.vertices.get(arr[left]), occurrence, size)){
 			min = left;    //if the left element is smaller, store it's index (in array) in min
 		}
-		if(right < n && !G.isLess(G.vertices.get(arr[min]), G.vertices.get(arr[right]))){
+		if(right < n && !G.isLess(G.vertices.get(arr[min]), G.vertices.get(arr[right]), occurrence, size)){
 			min = right;    //if the right element is smaller, store it's index (in array) in min
 		}
 		//min contains the index out of (i, left, right) that has the smallest value
@@ -246,24 +304,24 @@ class Heap{
 			//if min is not i, then one of the children of i is smaller than it
 			//swap and continue the heapify procedure recursively
 			Heap.swap(arr, i, min);
-			Heap.Heapify(arr, n, min, G);
+			Heap.Heapify(arr, n, min, G, occurrence, size);
 		}
 		
 		//the loop runs log n times and has complexity O(1) for each stage within loop
 		//T(n) = sum(c, 1, n) = O(log n)
 	}
 	
-	static void sort(int[] arr, Graph G, int n){
+	static void sort(int[] arr, Graph G, int n, boolean occurrence, int[] size){
 		//This function sorts an array by heapsort algorithm
 		//Time Complexity:: O(n log n)
 		//Space Complexity:: O(1)
 		
 		//Build a heap out of the array
-		for(int m = n/2 - 1; m >= 0; m--){Heapify(arr, n, m, G);}
+		for(int m = n/2 - 1; m >= 0; m--){Heapify(arr, n, m, G, occurrence, size);}
 		//Keep on extracting the minimum element at each stage and heapify
 		for(int m = n - 1; m > 0; m--){
 			Heap.swap(arr, 0, m);    //swap the maximum element with the mth (last element of the heap)
-			Heapify(arr, m, 0, G);    //heapify the remaining heap
+			Heapify(arr, m, 0, G, occurrence, size);    //heapify the remaining heap
 		}
 		//This procedure returns the reverse sorted array as required
 		
