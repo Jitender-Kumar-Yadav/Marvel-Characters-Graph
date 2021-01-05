@@ -18,6 +18,7 @@ public class MarvelGraph{
 			case "rank":
 				Marvel.gen_co();
 				int[] ranks = Marvel.rank();
+				if(ranks.length == 0){break;}
 				System.out.print(Marvel.vertices.get(ranks[0]).label);
 				for(int i = 1; i < Marvel.size; i++){System.out.print("," + Marvel.vertices.get(ranks[i]).label);}
 				break;
@@ -137,7 +138,7 @@ class Graph{
 		//Time Complexity:: O(1), constant number of operations
 		//Space Complexity:: O(1)
 		
-		return (size == 0) ? null : (float) Math.round((float)(2 * edgesize)/size * 100)/100;
+		return (size == 0) ? -1.0f : (float) Math.round((float)(2 * edgesize)/size * 100)/100;
 		//return null for 0 size of the list
 		//otherwise return average no of characters associated with each
 		//where average no of characters = 2* total no of edges / no of vertices
