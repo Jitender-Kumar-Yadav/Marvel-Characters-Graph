@@ -55,14 +55,24 @@ class CSVReader{
 			//reading the id
 			id = read.next();
 			if(id.charAt(0) == '"'){
+				id = id.substring(1);
 				temp = read.next();
-				id = id.substring(1) + "," + temp.substring(0, temp.length() - 1);
+				while(temp.charAt(temp.length() - 1) != '"'){
+					id = id + "," + temp;
+					temp = read.next();
+				}
+				id = id + "," + temp.substring(0, temp.length() - 1);
 			}
 			//reading the label
 			label = read.next();
 			if(label.charAt(0) == '"'){
+				label = label.substring(1);
 				temp = read.next();
-				label = label.substring(1) + "," + temp.substring(0, temp.length() - 1);
+				while(temp.charAt(temp.length() - 1) != '"'){
+					label = label + "," + temp;
+					temp = read.next();
+				}
+				label = label + "," + temp.substring(0, temp.length() - 1);
 			}
 			G.indices.put(label, count);
 			G.vertices.add(new Vertex(id, label, count));    //add the vertex in the hashMap and list
@@ -93,14 +103,24 @@ class CSVReader{
 			//reading the source label
 			source = read.next();
 			if(source.charAt(0) == '"'){
+				source = source.substring(1);
 				temp = read.next();
-				source = source.substring(1) + "," + temp.substring(0, temp.length() - 1);
+				while(temp.charAt(temp.length() - 1) != '"'){
+					source = source + "," + temp;
+					temp = read.next();
+				}
+				source = source + "," + temp.substring(0, temp.length() - 1);
 			}
 			//reading the target label
 			target = read.next();
 			if(target.charAt(0) == '"'){
+				target = target.substring(1);
 				temp = read.next();
-				target = target.substring(1) + "," + temp.substring(0, temp.length() - 1);
+				while(temp.charAt(temp.length() - 1) != '"'){
+					target = target + "," + temp;
+					temp = read.next();
+				}
+				target = target + "," + temp.substring(0, temp.length() - 1);
 			}
 			//reading the weight
 			weight = Integer.parseInt(read.next());
