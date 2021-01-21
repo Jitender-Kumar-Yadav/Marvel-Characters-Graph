@@ -74,9 +74,11 @@ class CSVReader{
 				}
 				label = label + "," + temp.substring(0, temp.length() - 1);
 			}
-			G.indices.put(label, count);
-			G.vertices.add(new Vertex(id, label, count));    //add the vertex in the hashMap and list
-			count ++;    //increment the counter
+			if(!G.indices.containsKey(label)){
+				G.indices.put(label, count);
+				G.vertices.add(new Vertex(id, label, count));    //add the vertex in the hashMap and list
+				count ++;    //increment the counter
+			}
 		}
 		read.close();
 		G.size = count;    //modify the total number of nodes in the graph
@@ -158,6 +160,7 @@ class Graph{
 		//Time Complexity:: O(1), constant number of operations
 		//Space Complexity:: O(1)
 		
+		System.out.println(edgesize);
 		return (size == 0) ? -1.0f : (float) Math.round((float)(2 * edgesize)/size * 100)/100;
 		//return null for 0 size of the list
 		//otherwise return average no of characters associated with each
