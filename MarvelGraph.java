@@ -91,6 +91,7 @@ class CSVReader{
 		//Space Complexity:: O(m); m = number of edges
 		
 		String source, target, temp;
+		boolean added = false;
 		Vertex v1, v2;
 		int weight, count;
 		G.adjList = new ArrayList<LinkedList<Edge>>();
@@ -126,17 +127,20 @@ class CSVReader{
 			}
 			//reading the weight
 			weight = Integer.parseInt(read.next());
+			added = false;
 			v1 = G.vertices.get(G.indices.get(source));    //store the source vertex
 			v2 = G.vertices.get(G.indices.get(target));    //store the target vertex
 			for(int k = 0; k < G.adjList.get(v1.index).size(); k++){
 				if(G.adjList.get(v1.index).get(k).end[1] == v2){
-					continue;    //ignore the edge if it has already been added
+					added = true;    //ignore the edge if it has already been added
 				}
 			}
 			//create two edges and parse these in the adjacency list of v1 and v2
-			G.adjList.get(G.indices.get(source)).add(new Edge(v1, v2, weight));
-			G.adjList.get(G.indices.get(target)).add(new Edge(v2, v1, weight));
-			count ++;
+			if(!added){
+				G.adjList.get(G.indices.get(source)).add(new Edge(v1, v2, weight));
+				G.adjList.get(G.indices.get(target)).add(new Edge(v2, v1, weight));
+				count ++;
+			}
 		}
 		read.close();
 		G.edgesize = count;
@@ -160,7 +164,6 @@ class Graph{
 		//Time Complexity:: O(1), constant number of operations
 		//Space Complexity:: O(1)
 		
-		System.out.println(edgesize);
 		return (size == 0) ? -1.0f : (float) Math.round((float)(2 * edgesize)/size * 100)/100;
 		//return null for 0 size of the list
 		//otherwise return average no of characters associated with each
